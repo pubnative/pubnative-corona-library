@@ -18,6 +18,26 @@ pubnative-corona-library is a collection of Open Source tools to implement API b
 <a name="requirements"></a>
 ## Requirements
 
+Corona libraries used by this library:
+* [crypto](https://docs.coronalabs.com/api/library/crypto/index.html)
+* [json](https://docs.coronalabs.com/api/library/json/index.html)
+* [network](https://docs.coronalabs.com/api/library/network/index.html)
+
+So, as described in the network library, you will need to add internet permissions to your Android `build.settings` file
+
+```json
+settings =
+{
+   android =
+   {
+      usesPermissions =
+      {
+         "android.permission.INTERNET",
+      },
+   },
+}
+```
+
 <a name="install"></a>
 ## Install
 
