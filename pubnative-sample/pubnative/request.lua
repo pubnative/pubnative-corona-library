@@ -52,7 +52,10 @@ function request.new()
       if not "simulator"==system.getInfo("environment") then
         parameters.os=system.getInfo("platformName")
       else
-        parameters.os="ios" --Trick to make it work in the simulator
+        parameters.os="ios"
+        if core.isAndroid() then
+          parameters.os="android" --Trick to make it work in the simulator
+        end
       end
     end
 
@@ -111,7 +114,7 @@ function request.new()
       for key,value in pairs( parameters ) do
 
         local parameterFormat="%s=%s"
-        if string.match(tostring(value), ",") then
+        if value and string.match(tostring(value), ",") then
           parameterFormat="%s=%q"
         end
         local parameterString=string.format(parameterFormat,
@@ -156,28 +159,53 @@ function request.new()
     end
   end
 
+  local function printNetworkEvent(event)
+
+    print("event.response - "..tostring(event.response))
+    for key, value in pairs(event.responseHeaders) do
+      print("HEADER - "..tostring(key).." : "..tostring(value))
+    end
+    print("event.isError - "..tostring(event.isError))
+    print("event.name - "..tostring(event.name))
+    print("event.url - "..tostring(event.url))
+    print("event.phase - "..tostring(event.phase))
+    print("event.status - "..tostring(event.status))
+    print("event.responseType - "..tostring(event.responseType))
+
+  end
+
   local function networkListener(event)
 
-    local isPhaseOK       = event.phase=="ended"
-    local isStatusOK      = event.status==200
-    local isResponseOK    = event.responseType=="text"
-    local isContentTypeOK = string.match(event.responseHeaders["Content-Type"], "application/json")~=nil
+    printNetworkEvent(event)
 
-    if isPhaseOK and isStatusOK and isResponseOK and isContentTypeOK then
-      local data=json.decode(event.response)
-      local isDataStatusOK=(data.status=="success" or data.status=="ok")
+    if not event.isError then
 
-      if data and isDataStatusOK then
-        adCount=#(data.ads)
-        for i=1, adCount do
-          model.new(data.ads[i]).loadResources(adListener)
+      local isPhaseOK       = event.phase=="ended"
+      local isStatusOK      = event.status==200
+
+      if isPhaseOK and isStatusOK then
+
+        local isResponseOK    = event.responseType=="text"
+        local contentType = event.responseHeaders["Content-Type"]
+        local isContentTypeOK = string.match(contentType, "application/json")~=nil
+
+        if isResponseOK and isContentTypeOK then
+          local data=json.decode(event.response)
+          local isDataStatusOK=(data.status=="success" or data.status=="ok")
+
+          if data and isDataStatusOK then
+            adCount=#(data.ads)
+            for i=1, adCount do
+              model.new(data.ads[i]).loadResources(adListener)
+            end
+
+          else
+            invokeEnded(nil,"parse error")
+          end
+        else
+          invokeEnded(nil,"server error")
         end
-
-      else
-        invokeEnded(nil,"parse error")
       end
-    else
-      invokeEnded(nil,"server error")
     end
   end
 
