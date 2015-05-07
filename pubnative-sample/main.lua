@@ -20,8 +20,13 @@ end
 local function requestAds()
 
 	local request = pubnative.createRequest()
+  local app_token = "d26bba3bb7956ab4ed4f7db25393f154e30c13f5a1874e8fc08a21c919cce17b"
 
-	request.addParameter("app_token","d26bba3bb7956ab4ed4f7db25393f154e30c13f5a1874e8fc08a21c919cce17b")
+  if "Android"==system.getInfo("platformName") then
+    app_token = "681427d73d03194d830e92667bb0429fb5a796322831b54573db2fd2081042bc"
+  end
+
+	request.addParameter("app_token", app_token)
 	request.addParameter("bundle_id", "com.pubnative.pubnativeSample")
 	request.addParameter("icon_size", "100x100")
 	request.addParameter("banner_size", "1200x627")
