@@ -105,6 +105,15 @@ function request.new()
     return isValid
   end
 
+  local function urlEncode(url)
+    if (url) then
+      url = string.gsub (url, "\n", "\r\n")
+      url = string.gsub (url, "([^%w ])", function (c) return string.format ("%%%02X", string.byte(c)) end)
+      url = string.gsub (url, " ", "+")
+    end
+    return url
+end
+
   local function url()
     local url=nil
     setDefaults()
@@ -117,17 +126,16 @@ function request.new()
         if value and string.match(tostring(value), ",") then
           parameterFormat="%s=%q"
         end
+        local encodedValue=urlEncode(value)
         local parameterString=string.format(parameterFormat,
                                             tostring(key),
-                                            tostring(value))
-
+                                            tostring(encodedValue))
         local globalFormat="%s&%s"
         if firstParameter then
           globalFormat="%s%s"
           firstParameter=false
         end
         url=string.format(globalFormat, url, parameterString)
-
       end
     end
     return url
@@ -176,7 +184,8 @@ function request.new()
 
   local function networkListener(event)
 
-    printNetworkEvent(event)
+    --Uncomment for debug only
+    --printNetworkEvent(event)
 
     if not event.isError then
 
